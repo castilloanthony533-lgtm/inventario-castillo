@@ -12,46 +12,45 @@ import {
   Boxes,
   TrendingUp,
   Plus,
-  Edit3,
-  Trash2,
   Search,
+  Trash2,
+  Edit3,
+  Save,
   ScanLine,
   ArrowDownToLine,
   ArrowUpFromLine,
-  Save,
-  Camera,
-  UserPlus
+  RefreshCw,
+  Eye,
+  EyeOff,
+  XCircle
 } from 'lucide-react'
+import { supabase } from './supabase'
 import './index.css'
 
-/* =====================================================
-   USUARIOS
-===================================================== */
+/* =========================================================
+   USUARIOS DEL LOGIN
+========================================================= */
 
-const USUARIOS_INICIALES = [
+const USUARIOS = [
   {
-    id: 1,
     usuario: 'admin',
     password: 'Admin123',
     nombre: 'Administrador',
     rol: 'Administrador'
   },
   {
-    id: 2,
     usuario: 'vendedor1',
     password: 'Venta123',
     nombre: 'Vendedor 1',
     rol: 'Vendedor'
   },
   {
-    id: 3,
     usuario: 'vendedor2',
     password: 'Venta456',
     nombre: 'Vendedor 2',
     rol: 'Vendedor'
   },
   {
-    id: 4,
     usuario: 'bodega',
     password: 'Bodega123',
     nombre: 'Bodega',
@@ -59,18 +58,19 @@ const USUARIOS_INICIALES = [
   }
 ]
 
-/* =====================================================
-   PRODUCTOS INICIALES
-===================================================== */
+/* =========================================================
+   PRODUCTOS DE EJEMPLO
+========================================================= */
 
 const PRODUCTOS_INICIALES = [
   {
     id: 1,
-    codigo: 'CAST-001',
+    codigo: '90915',
     producto: 'Filtro de aceite Toyota',
     categoria: 'Filtros',
     marca: 'Toyota',
-    anio: '2020-2026',
+    modelo: '',
+    anio: '',
     stock: 15,
     minimo: 10,
     proveedor: 'Proveedor Toyota',
@@ -79,11 +79,12 @@ const PRODUCTOS_INICIALES = [
   },
   {
     id: 2,
-    codigo: 'CAST-002',
+    codigo: 'H7-LED',
     producto: 'Foco H7 LED',
     categoria: 'Iluminación',
-    marca: 'Universal',
-    anio: '2020-2026',
+    marca: 'LED',
+    modelo: '',
+    anio: '',
     stock: 5,
     minimo: 8,
     proveedor: 'Proveedor LED',
@@ -92,100 +93,59 @@ const PRODUCTOS_INICIALES = [
   },
   {
     id: 3,
-    codigo: 'CAST-003',
+    codigo: 'BANDA-001',
     producto: 'Banda Toyota',
     categoria: 'Motor',
     marca: 'Toyota',
-    anio: '2018-2026',
+    modelo: '',
+    anio: '',
     stock: 20,
     minimo: 5,
     proveedor: 'Proveedor Motor',
     precioCompra: 300,
     precioVenta: 450
-  },
-  {
-    id: 4,
-    codigo: 'CAST-004',
-    producto: 'Stop Isuzu D-Max',
-    categoria: 'Iluminación',
-    marca: 'Isuzu',
-    anio: '2019-2026',
-    stock: 7,
-    minimo: 5,
-    proveedor: 'Proveedor Isuzu',
-    precioCompra: 800,
-    precioVenta: 1200
   }
 ]
 
-/* =====================================================
-   UTILIDADES
-===================================================== */
-
-const cargarDatos = (clave, valorInicial) => {
-  try {
-    const guardado = localStorage.getItem(clave)
-
-    if (guardado) {
-      return JSON.parse(guardado)
-    }
-  } catch (error) {
-    console.error(error)
-  }
-
-  return valorInicial
-}
-
-const guardarDatos = (clave, datos) => {
-  try {
-    localStorage.setItem(
-      clave,
-      JSON.stringify(datos)
-    )
-  } catch (error) {
-    console.error(error)
-  }
-}
-
-/* =====================================================
+/* =========================================================
    LOGIN
-===================================================== */
+========================================================= */
 
-function Login({ usuarios, onLogin }) {
+function Login({ onLogin }) {
   const [usuario, setUsuario] = useState('')
   const [password, setPassword] = useState('')
-  const [mostrarPassword, setMostrarPassword] =
-    useState(false)
+  const [mostrarPassword, setMostrarPassword] = useState(false)
   const [error, setError] = useState('')
 
   const iniciarSesion = (e) => {
     e.preventDefault()
 
-    const encontrado = usuarios.find(
+    const encontrado = USUARIOS.find(
       (u) =>
         u.usuario === usuario.trim() &&
         u.password === password
     )
 
     if (!encontrado) {
-      setError(
-        'Usuario o contraseña incorrectos'
-      )
+      setError('Usuario o contraseña incorrectos')
       return
     }
 
     setError('')
+    localStorage.setItem(
+      'inventario_usuario',
+      JSON.stringify(encontrado)
+    )
+
     onLogin(encontrado)
   }
 
   return (
     <div className="login-page">
       <div className="login-background">
-
         <div className="login-card">
 
           <div className="login-brand">
-
             <div className="login-logo">
               ⚡
             </div>
@@ -199,22 +159,15 @@ function Login({ usuarios, onLogin }) {
             </p>
 
             <div className="login-line"></div>
-
           </div>
 
           <form onSubmit={iniciarSesion}>
 
             <div className="input-group">
-
-              <label>
-                Usuario
-              </label>
+              <label>Usuario</label>
 
               <div className="input-wrapper">
-
-                <span>
-                  👤
-                </span>
+                <span>👤</span>
 
                 <input
                   type="text"
@@ -226,22 +179,14 @@ function Login({ usuarios, onLogin }) {
                   }}
                   autoComplete="username"
                 />
-
               </div>
-
             </div>
 
             <div className="input-group">
-
-              <label>
-                Contraseña
-              </label>
+              <label>Contraseña</label>
 
               <div className="input-wrapper">
-
-                <span>
-                  🔒
-                </span>
+                <span>🔒</span>
 
                 <input
                   type={
@@ -267,13 +212,13 @@ function Login({ usuarios, onLogin }) {
                     )
                   }
                 >
-                  {mostrarPassword
-                    ? 'Ocultar'
-                    : 'Ver'}
+                  {mostrarPassword ? (
+                    <EyeOff size={16} />
+                  ) : (
+                    <Eye size={16} />
+                  )}
                 </button>
-
               </div>
-
             </div>
 
             {error && (
@@ -289,213 +234,214 @@ function Login({ usuarios, onLogin }) {
             >
               INICIAR SESIÓN
             </button>
-
           </form>
 
           <div className="login-footer">
-            <span>
-              Castillo Electripartes
-            </span>
-
+            <span>Castillo Electripartes</span>
             <span>•</span>
-
-            <span>
-              Inventario
-            </span>
+            <span>Inventario</span>
           </div>
 
         </div>
-
       </div>
     </div>
   )
 }
 
-/* =====================================================
+/* =========================================================
+   FORMULARIO VACÍO
+========================================================= */
+
+const FORMULARIO_VACIO = {
+  codigo: '',
+  producto: '',
+  categoria: '',
+  marca: '',
+  modelo: '',
+  anio: '',
+  proveedor: '',
+  cantidad: 0,
+  minimo: 0,
+  precioCompra: 0,
+  precioVenta: 0
+}
+
+/* =========================================================
+   CONVERTIR PRODUCTO SUPABASE
+========================================================= */
+
+function convertirProducto(p) {
+  return {
+    id: p.id,
+    codigo: p.codigo || '',
+    producto: p.producto || '',
+    categoria: p.categoria || '',
+    marca: p.marca || '',
+    modelo: p.modelo || '',
+    anio: p.anio || '',
+    proveedor: p.proveedor || '',
+    stock: Number(p.cantidad || 0),
+    minimo: Number(p.minimo || 0),
+    precioCompra: Number(p.precio_compra || 0),
+    precioVenta: Number(p.precio_venta || 0)
+  }
+}
+
+/* =========================================================
    DASHBOARD
-===================================================== */
+========================================================= */
 
-function DashboardHome({ productos }) {
+function Dashboard({
+  usuario,
+  onLogout,
+  productos,
+  cambiarSeccion,
+  cargarProductos
+}) {
+  const valorInventario = productos.reduce(
+    (total, producto) =>
+      total +
+      producto.stock *
+        producto.precioCompra,
+    0
+  )
 
-  const valorInventario =
-    productos.reduce(
-      (total, producto) =>
-        total +
-        Number(producto.stock) *
-          Number(producto.precioCompra),
-      0
-    )
+  const valorVenta = productos.reduce(
+    (total, producto) =>
+      total +
+      producto.stock *
+        producto.precioVenta,
+    0
+  )
 
-  const valorVenta =
-    productos.reduce(
-      (total, producto) =>
-        total +
-        Number(producto.stock) *
-          Number(producto.precioVenta),
-      0
-    )
+  const stockBajo = productos.filter(
+    (producto) =>
+      producto.stock <= producto.minimo
+  )
 
-  const stockBajo =
-    productos.filter(
-      (producto) =>
-        Number(producto.stock) <=
-        Number(producto.minimo)
-    )
-
-  const totalUnidades =
-    productos.reduce(
-      (total, producto) =>
-        total + Number(producto.stock),
-      0
-    )
+  const totalUnidades = productos.reduce(
+    (total, producto) =>
+      total + producto.stock,
+    0
+  )
 
   return (
     <>
       <div className="welcome">
-
         <div>
-          <h2>
-            Dashboard
-          </h2>
+          <h2>Dashboard</h2>
 
           <p>
-            Resumen general del inventario.
+            Bienvenido, {usuario.nombre}.
           </p>
         </div>
 
+        <div className="role-badge">
+          {usuario.rol}
+        </div>
       </div>
 
       <div className="kpi-grid">
 
         <div className="kpi-card">
-
           <div className="kpi-icon">
             <Package />
           </div>
 
           <div>
-            <span>
-              Productos
-            </span>
-
-            <strong>
-              {productos.length}
-            </strong>
+            <span>Productos</span>
+            <strong>{productos.length}</strong>
           </div>
-
         </div>
 
         <div className="kpi-card">
-
           <div className="kpi-icon">
             <Boxes />
           </div>
 
           <div>
-            <span>
-              Unidades
-            </span>
-
-            <strong>
-              {totalUnidades}
-            </strong>
+            <span>Unidades</span>
+            <strong>{totalUnidades}</strong>
           </div>
-
         </div>
 
         <div className="kpi-card">
-
           <div className="kpi-icon">
             <DollarSign />
           </div>
 
           <div>
-            <span>
-              Valor inventario
-            </span>
+            <span>Valor inventario</span>
 
             <strong>
               L {valorInventario.toLocaleString()}
             </strong>
           </div>
-
         </div>
 
         <div className="kpi-card">
-
           <div className="kpi-icon">
             <TrendingUp />
           </div>
 
           <div>
-            <span>
-              Valor venta
-            </span>
+            <span>Valor venta</span>
 
             <strong>
               L {valorVenta.toLocaleString()}
             </strong>
           </div>
-
         </div>
 
         <div className="kpi-card warning">
-
           <div className="kpi-icon">
             <AlertTriangle />
           </div>
 
           <div>
-            <span>
-              Stock bajo
-            </span>
-
-            <strong>
-              {stockBajo.length}
-            </strong>
+            <span>Stock bajo</span>
+            <strong>{stockBajo.length}</strong>
           </div>
-
         </div>
 
       </div>
 
       {stockBajo.length > 0 && (
-
         <div className="stock-alert">
-
           <AlertTriangle size={22} />
 
           <div>
-
             <strong>
               Atención: stock bajo
             </strong>
 
             <p>
-              Hay {stockBajo.length} producto(s)
-              por debajo del stock mínimo.
+              Hay {stockBajo.length}{' '}
+              producto(s) por debajo
+              del stock mínimo.
             </p>
-
           </div>
-
         </div>
-
       )}
 
       <section className="panel">
 
         <div className="panel-header">
-
           <div>
-            <h3>
-              Inventario actual
-            </h3>
+            <h3>Inventario actual</h3>
 
             <p>
               Productos registrados
             </p>
           </div>
 
+          <button
+            className="action-button"
+            onClick={cargarProductos}
+          >
+            <RefreshCw size={17} />
+            Actualizar
+          </button>
         </div>
 
         <div className="table-container">
@@ -507,255 +453,267 @@ function DashboardHome({ productos }) {
                 <th>Código</th>
                 <th>Producto</th>
                 <th>Marca</th>
-                <th>Año</th>
                 <th>Stock</th>
+                <th>Mínimo</th>
+                <th>Compra</th>
                 <th>Venta</th>
                 <th>Estado</th>
               </tr>
             </thead>
 
             <tbody>
-
               {productos.map((producto) => {
 
-                const stock =
-                  Number(producto.stock)
-
-                const minimo =
-                  Number(producto.minimo)
+                const bajo =
+                  producto.stock <=
+                  producto.minimo
 
                 return (
                   <tr key={producto.id}>
 
                     <td>
-                      {producto.codigo}
-                    </td>
-
-                    <td>
                       <strong>
-                        {producto.producto}
+                        {producto.codigo}
                       </strong>
                     </td>
 
                     <td>
-                      {producto.marca}
+                      {producto.producto}
                     </td>
 
                     <td>
-                      {producto.anio}
+                      {producto.marca || '-'}
                     </td>
 
                     <td>
-                      {stock}
+                      {producto.stock}
                     </td>
 
                     <td>
-                      L {Number(
-                        producto.precioVenta
-                      ).toLocaleString()}
+                      {producto.minimo}
                     </td>
 
                     <td>
+                      L{' '}
+                      {producto.precioCompra.toLocaleString()}
+                    </td>
 
-                      {stock === 0 ? (
+                    <td>
+                      L{' '}
+                      {producto.precioVenta.toLocaleString()}
+                    </td>
 
-                        <span className="badge danger">
-                          No disponible
-                        </span>
-
-                      ) : stock <= minimo ? (
-
+                    <td>
+                      {bajo ? (
                         <span className="badge danger">
                           ⚠ Stock bajo
                         </span>
-
                       ) : (
-
                         <span className="badge success">
                           ✓ Disponible
                         </span>
-
                       )}
-
                     </td>
 
                   </tr>
                 )
               })}
-
             </tbody>
 
           </table>
 
         </div>
-
       </section>
     </>
   )
 }
 
-/* =====================================================
+/* =========================================================
    PRODUCTOS
-===================================================== */
+========================================================= */
 
 function Productos({
   productos,
-  setProductos
+  cargarProductos,
+  usuario
 }) {
-
-  const formularioInicial = {
-    id: null,
-    codigo: '',
-    producto: '',
-    categoria: '',
-    marca: '',
-    anio: '',
-    stock: 0,
-    minimo: 1,
-    proveedor: '',
-    precioCompra: 0,
-    precioVenta: 0
-  }
-
-  const [formulario, setFormulario] =
-    useState(formularioInicial)
+  const [busqueda, setBusqueda] = useState('')
+  const [mostrarFormulario, setMostrarFormulario] =
+    useState(false)
 
   const [editando, setEditando] =
-    useState(false)
+    useState(null)
 
-  const [busqueda, setBusqueda] =
+  const [formulario, setFormulario] =
+    useState(FORMULARIO_VACIO)
+
+  const [mensaje, setMensaje] =
     useState('')
 
-  const [mostrarForm, setMostrarForm] =
-    useState(false)
-
   const productosFiltrados =
-    productos.filter((producto) => {
-
+    useMemo(() => {
       const texto =
-        busqueda.toLowerCase()
+        busqueda.toLowerCase().trim()
 
-      return (
-        producto.producto
-          .toLowerCase()
-          .includes(texto) ||
-        producto.codigo
-          .toLowerCase()
-          .includes(texto) ||
-        producto.marca
-          .toLowerCase()
-          .includes(texto)
+      if (!texto) return productos
+
+      return productos.filter(
+        (p) =>
+          p.producto
+            .toLowerCase()
+            .includes(texto) ||
+          p.codigo
+            .toLowerCase()
+            .includes(texto) ||
+          p.marca
+            .toLowerCase()
+            .includes(texto) ||
+          p.categoria
+            .toLowerCase()
+            .includes(texto)
       )
-    })
+    }, [productos, busqueda])
 
-  const cambiarCampo = (campo, valor) => {
-
-    setFormulario({
-      ...formulario,
-      [campo]: valor
-    })
+  const abrirNuevo = () => {
+    setEditando(null)
+    setFormulario(FORMULARIO_VACIO)
+    setMensaje('')
+    setMostrarFormulario(true)
   }
 
-  const guardarProducto = (e) => {
+  const abrirEditar = (producto) => {
+    setEditando(producto)
 
+    setFormulario({
+      codigo: producto.codigo,
+      producto: producto.producto,
+      categoria: producto.categoria,
+      marca: producto.marca,
+      modelo: producto.modelo,
+      anio: producto.anio,
+      proveedor: producto.proveedor,
+      cantidad: producto.stock,
+      minimo: producto.minimo,
+      precioCompra: producto.precioCompra,
+      precioVenta: producto.precioVenta
+    })
+
+    setMensaje('')
+    setMostrarFormulario(true)
+  }
+
+  const cambiarCampo = (campo, valor) => {
+    setFormulario((actual) => ({
+      ...actual,
+      [campo]: valor
+    }))
+  }
+
+  const guardarProducto = async (e) => {
     e.preventDefault()
+    setMensaje('')
 
     if (
-      !formulario.codigo ||
-      !formulario.producto
+      !formulario.codigo.trim() ||
+      !formulario.producto.trim()
     ) {
-      alert(
-        'Ingresa como mínimo el código y nombre del producto.'
+      setMensaje(
+        'Código y nombre del producto son obligatorios.'
       )
       return
     }
 
+    const datos = {
+      codigo: formulario.codigo.trim(),
+      producto: formulario.producto.trim(),
+      categoria: formulario.categoria.trim(),
+      marca: formulario.marca.trim(),
+      modelo: formulario.modelo.trim(),
+      anio: formulario.anio.trim(),
+      proveedor: formulario.proveedor.trim(),
+      cantidad: Number(formulario.cantidad) || 0,
+      minimo: Number(formulario.minimo) || 0,
+      precio_compra:
+        Number(formulario.precioCompra) || 0,
+      precio_venta:
+        Number(formulario.precioVenta) || 0,
+      updated_at: new Date().toISOString()
+    }
+
+    let error
+
     if (editando) {
+      const resultado = await supabase
+        .from('productos')
+        .update(datos)
+        .eq('id', editando.id)
 
-      setProductos(
-        productos.map((producto) =>
-          producto.id === formulario.id
-            ? {
-                ...formulario,
-                stock: Number(
-                  formulario.stock
-                ),
-                minimo: Number(
-                  formulario.minimo
-                ),
-                precioCompra: Number(
-                  formulario.precioCompra
-                ),
-                precioVenta: Number(
-                  formulario.precioVenta
-                )
-              }
-            : producto
-        )
-      )
-
+      error = resultado.error
     } else {
+      const resultado = await supabase
+        .from('productos')
+        .insert(datos)
 
-      const nuevo = {
-        ...formulario,
-        id: Date.now(),
-        stock: Number(formulario.stock),
-        minimo: Number(formulario.minimo),
-        precioCompra: Number(
-          formulario.precioCompra
-        ),
-        precioVenta: Number(
-          formulario.precioVenta
+      error = resultado.error
+    }
+
+    if (error) {
+      console.error(error)
+
+      if (
+        error.code === '23505'
+      ) {
+        setMensaje(
+          'Ese código de producto ya existe.'
+        )
+      } else {
+        setMensaje(
+          'No se pudo guardar el producto.'
         )
       }
 
-      setProductos([
-        ...productos,
-        nuevo
-      ])
-    }
-
-    setFormulario(
-      formularioInicial
-    )
-
-    setEditando(false)
-    setMostrarForm(false)
-  }
-
-  const editarProducto = (producto) => {
-
-    setFormulario(producto)
-    setEditando(true)
-    setMostrarForm(true)
-  }
-
-  const eliminarProducto = (id) => {
-
-    if (
-      !confirm(
-        '¿Seguro que quieres eliminar este producto?'
-      )
-    ) {
       return
     }
 
-    setProductos(
-      productos.filter(
-        (producto) =>
-          producto.id !== id
+    setMostrarFormulario(false)
+    setEditando(null)
+    setFormulario(FORMULARIO_VACIO)
+
+    await cargarProductos()
+  }
+
+  const eliminarProducto = async (producto) => {
+    const confirmar =
+      window.confirm(
+        `¿Eliminar "${producto.producto}"?`
       )
-    )
+
+    if (!confirmar) return
+
+    const { error } =
+      await supabase
+        .from('productos')
+        .delete()
+        .eq('id', producto.id)
+
+    if (error) {
+      console.error(error)
+
+      alert(
+        'No se pudo eliminar el producto.'
+      )
+
+      return
+    }
+
+    await cargarProductos()
   }
 
   return (
     <>
       <div className="welcome">
-
         <div>
-          <h2>
-            Productos
-          </h2>
+          <h2>Productos</h2>
 
           <p>
             Administra tus repuestos.
@@ -765,21 +723,17 @@ function Productos({
         <button
           className="login-button"
           style={{
-            width: 'auto',
-            padding: '0 18px'
+            maxWidth: 220,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 8
           }}
-          onClick={() => {
-            setFormulario(
-              formularioInicial
-            )
-            setEditando(false)
-            setMostrarForm(true)
-          }}
+          onClick={abrirNuevo}
         >
-          <Plus size={17} />
+          <Plus size={19} />
           Nuevo producto
         </button>
-
       </div>
 
       <section className="panel">
@@ -798,7 +752,8 @@ function Productos({
             </h3>
 
             <p>
-              {productos.length} productos registrados
+              {productosFiltrados.length}{' '}
+              producto(s)
             </p>
           </div>
 
@@ -806,218 +761,28 @@ function Productos({
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: 8,
-              border: '1px solid #e2e8f0',
-              borderRadius: 10,
-              padding: '8px 12px',
-              background: '#f8fafc'
+              gap: 8
             }}
           >
-            <Search size={17} />
+            <Search size={19} />
 
             <input
+              type="text"
+              placeholder="Buscar producto, código o marca..."
               value={busqueda}
               onChange={(e) =>
                 setBusqueda(e.target.value)
               }
-              placeholder="Buscar..."
               style={{
-                border: 'none',
-                outline: 'none',
-                background: 'transparent'
+                padding: '11px 14px',
+                borderRadius: 9,
+                border: '1px solid #d1d5db',
+                minWidth: 260
               }}
             />
-
           </div>
 
         </div>
-
-        {mostrarForm && (
-
-          <form
-            onSubmit={guardarProducto}
-            style={{
-              padding: 20,
-              background: '#f8fafc',
-              borderBottom:
-                '1px solid #e2e8f0'
-            }}
-          >
-
-            <h3>
-              {editando
-                ? 'Editar producto'
-                : 'Nuevo producto'}
-            </h3>
-
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns:
-                  'repeat(auto-fit,minmax(180px,1fr))',
-                gap: 12,
-                marginTop: 15
-              }}
-            >
-
-              <input
-                placeholder="Código"
-                value={formulario.codigo}
-                onChange={(e) =>
-                  cambiarCampo(
-                    'codigo',
-                    e.target.value
-                  )
-                }
-              />
-
-              <input
-                placeholder="Producto"
-                value={formulario.producto}
-                onChange={(e) =>
-                  cambiarCampo(
-                    'producto',
-                    e.target.value
-                  )
-                }
-              />
-
-              <input
-                placeholder="Categoría"
-                value={formulario.categoria}
-                onChange={(e) =>
-                  cambiarCampo(
-                    'categoria',
-                    e.target.value
-                  )
-                }
-              />
-
-              <input
-                placeholder="Marca"
-                value={formulario.marca}
-                onChange={(e) =>
-                  cambiarCampo(
-                    'marca',
-                    e.target.value
-                  )
-                }
-              />
-
-              <input
-                placeholder="Año"
-                value={formulario.anio}
-                onChange={(e) =>
-                  cambiarCampo(
-                    'anio',
-                    e.target.value
-                  )
-                }
-              />
-
-              <input
-                placeholder="Proveedor"
-                value={formulario.proveedor}
-                onChange={(e) =>
-                  cambiarCampo(
-                    'proveedor',
-                    e.target.value
-                  )
-                }
-              />
-
-              <input
-                type="number"
-                placeholder="Cantidad"
-                value={formulario.stock}
-                onChange={(e) =>
-                  cambiarCampo(
-                    'stock',
-                    e.target.value
-                  )
-                }
-              />
-
-              <input
-                type="number"
-                placeholder="Stock mínimo"
-                value={formulario.minimo}
-                onChange={(e) =>
-                  cambiarCampo(
-                    'minimo',
-                    e.target.value
-                  )
-                }
-              />
-
-              <input
-                type="number"
-                placeholder="Precio compra"
-                value={formulario.precioCompra}
-                onChange={(e) =>
-                  cambiarCampo(
-                    'precioCompra',
-                    e.target.value
-                  )
-                }
-              />
-
-              <input
-                type="number"
-                placeholder="Precio venta"
-                value={formulario.precioVenta}
-                onChange={(e) =>
-                  cambiarCampo(
-                    'precioVenta',
-                    e.target.value
-                  )
-                }
-              />
-
-            </div>
-
-            <div
-              style={{
-                display: 'flex',
-                gap: 10,
-                marginTop: 15
-              }}
-            >
-
-              <button
-                type="submit"
-                className="login-button"
-                style={{
-                  width: 'auto',
-                  padding: '0 20px'
-                }}
-              >
-                <Save size={17} />
-                Guardar
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setMostrarForm(false)
-                  setEditando(false)
-                }}
-                style={{
-                  padding: '10px 18px',
-                  border: '1px solid #cbd5e1',
-                  borderRadius: 10,
-                  background: 'white',
-                  cursor: 'pointer'
-                }}
-              >
-                Cancelar
-              </button>
-
-            </div>
-
-          </form>
-
-        )}
 
         <div className="table-container">
 
@@ -1027,12 +792,12 @@ function Productos({
               <tr>
                 <th>Código</th>
                 <th>Producto</th>
+                <th>Categoría</th>
                 <th>Marca</th>
                 <th>Año</th>
                 <th>Stock</th>
-                <th>Compra</th>
+                <th>Proveedor</th>
                 <th>Venta</th>
-                <th>Estado</th>
                 <th>Acciones</th>
               </tr>
             </thead>
@@ -1040,115 +805,89 @@ function Productos({
             <tbody>
 
               {productosFiltrados.map(
-                (producto) => {
+                (producto) => (
+                  <tr key={producto.id}>
 
-                  const stock =
-                    Number(producto.stock)
+                    <td>
+                      {producto.codigo}
+                    </td>
 
-                  const minimo =
-                    Number(producto.minimo)
+                    <td>
+                      <strong>
+                        {producto.producto}
+                      </strong>
+                    </td>
 
-                  return (
-                    <tr
-                      key={producto.id}
-                    >
+                    <td>
+                      {producto.categoria || '-'}
+                    </td>
 
-                      <td>
-                        {producto.codigo}
-                      </td>
+                    <td>
+                      {producto.marca || '-'}
+                    </td>
 
-                      <td>
-                        <strong>
-                          {producto.producto}
-                        </strong>
-                      </td>
+                    <td>
+                      {producto.anio || '-'}
+                    </td>
 
-                      <td>
-                        {producto.marca}
-                      </td>
+                    <td>
+                      {producto.stock}
+                    </td>
 
-                      <td>
-                        {producto.anio}
-                      </td>
+                    <td>
+                      {producto.proveedor || '-'}
+                    </td>
 
-                      <td>
-                        {stock}
-                      </td>
+                    <td>
+                      L{' '}
+                      {producto.precioVenta.toLocaleString()}
+                    </td>
 
-                      <td>
-                        L {Number(
-                          producto.precioCompra
-                        ).toLocaleString()}
-                      </td>
-
-                      <td>
-                        L {Number(
-                          producto.precioVenta
-                        ).toLocaleString()}
-                      </td>
-
-                      <td>
-
-                        {stock === 0 ? (
-                          <span className="badge danger">
-                            No disponible
-                          </span>
-                        ) : stock <= minimo ? (
-                          <span className="badge danger">
-                            Stock bajo
-                          </span>
-                        ) : (
-                          <span className="badge success">
-                            Disponible
-                          </span>
-                        )}
-
-                      </td>
-
-                      <td>
+                    <td>
+                      <div
+                        style={{
+                          display: 'flex',
+                          gap: 6
+                        }}
+                      >
 
                         <button
                           onClick={() =>
-                            editarProducto(
-                              producto
-                            )
+                            abrirEditar(producto)
                           }
+                          title="Editar"
                           style={{
-                            border: 'none',
-                            background: '#eff6ff',
-                            color: '#2563eb',
+                            border: 0,
                             padding: 8,
-                            borderRadius: 8,
-                            cursor: 'pointer',
-                            marginRight: 5
+                            borderRadius: 7,
+                            cursor: 'pointer'
                           }}
                         >
-                          <Edit3 size={15} />
+                          <Edit3 size={17} />
                         </button>
 
                         <button
                           onClick={() =>
                             eliminarProducto(
-                              producto.id
+                              producto
                             )
                           }
+                          title="Eliminar"
                           style={{
-                            border: 'none',
-                            background: '#fef2f2',
-                            color: '#dc2626',
+                            border: 0,
                             padding: 8,
-                            borderRadius: 8,
+                            borderRadius: 7,
                             cursor: 'pointer'
                           }}
                         >
-                          <Trash2 size={15} />
+                          <Trash2 size={17} />
                         </button>
 
-                      </td>
+                      </div>
+                    </td>
 
-                    </tr>
-                  )
-                }
+                  </tr>
+                )
               )}
 
             </tbody>
@@ -1156,222 +895,525 @@ function Productos({
           </table>
 
         </div>
-
       </section>
+
+      {mostrarFormulario && (
+        <div style={modalFondo}>
+
+          <div style={modalCaja}>
+
+            <div style={modalHeader}>
+              <div>
+                <h3>
+                  {editando
+                    ? 'Editar producto'
+                    : 'Nuevo producto'}
+                </h3>
+
+                <p>
+                  Completa la información.
+                </p>
+              </div>
+
+              <button
+                onClick={() =>
+                  setMostrarFormulario(false)
+                }
+                style={botonCerrar}
+              >
+                <X />
+              </button>
+            </div>
+
+            <form onSubmit={guardarProducto}>
+
+              <div style={formGrid}>
+
+                <Campo
+                  label="Código"
+                  value={formulario.codigo}
+                  onChange={(v) =>
+                    cambiarCampo('codigo', v)
+                  }
+                  placeholder="Ej. 90915"
+                />
+
+                <Campo
+                  label="Producto"
+                  value={formulario.producto}
+                  onChange={(v) =>
+                    cambiarCampo('producto', v)
+                  }
+                  placeholder="Nombre del producto"
+                />
+
+                <Campo
+                  label="Categoría"
+                  value={formulario.categoria}
+                  onChange={(v) =>
+                    cambiarCampo('categoria', v)
+                  }
+                  placeholder="Filtros, iluminación..."
+                />
+
+                <Campo
+                  label="Marca"
+                  value={formulario.marca}
+                  onChange={(v) =>
+                    cambiarCampo('marca', v)
+                  }
+                  placeholder="Toyota, Isuzu..."
+                />
+
+                <Campo
+                  label="Modelo"
+                  value={formulario.modelo}
+                  onChange={(v) =>
+                    cambiarCampo('modelo', v)
+                  }
+                  placeholder="Modelo"
+                />
+
+                <Campo
+                  label="Año"
+                  value={formulario.anio}
+                  onChange={(v) =>
+                    cambiarCampo('anio', v)
+                  }
+                  placeholder="2019-2026"
+                />
+
+                <Campo
+                  label="Proveedor"
+                  value={formulario.proveedor}
+                  onChange={(v) =>
+                    cambiarCampo(
+                      'proveedor',
+                      v
+                    )
+                  }
+                  placeholder="Proveedor"
+                />
+
+                <Campo
+                  label="Cantidad"
+                  type="number"
+                  value={formulario.cantidad}
+                  onChange={(v) =>
+                    cambiarCampo(
+                      'cantidad',
+                      v
+                    )
+                  }
+                />
+
+                <Campo
+                  label="Stock mínimo"
+                  type="number"
+                  value={formulario.minimo}
+                  onChange={(v) =>
+                    cambiarCampo(
+                      'minimo',
+                      v
+                    )
+                  }
+                />
+
+                <Campo
+                  label="Precio compra"
+                  type="number"
+                  value={formulario.precioCompra}
+                  onChange={(v) =>
+                    cambiarCampo(
+                      'precioCompra',
+                      v
+                    )
+                  }
+                />
+
+                <Campo
+                  label="Precio venta"
+                  type="number"
+                  value={formulario.precioVenta}
+                  onChange={(v) =>
+                    cambiarCampo(
+                      'precioVenta',
+                      v
+                    )
+                  }
+                />
+
+              </div>
+
+              {mensaje && (
+                <div style={mensajeError}>
+                  <AlertTriangle size={17} />
+                  {mensaje}
+                </div>
+              )}
+
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'flex-end',
+                  gap: 10,
+                  marginTop: 20
+                }}
+              >
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setMostrarFormulario(false)
+                  }
+                  style={botonSecundario}
+                >
+                  Cancelar
+                </button>
+
+                <button
+                  type="submit"
+                  style={botonPrincipal}
+                >
+                  <Save size={17} />
+                  Guardar
+                </button>
+
+              </div>
+
+            </form>
+
+          </div>
+        </div>
+      )}
     </>
   )
 }
 
-/* =====================================================
+/* =========================================================
+   CAMPO
+========================================================= */
+
+function Campo({
+  label,
+  value,
+  onChange,
+  type = 'text',
+  placeholder = ''
+}) {
+  return (
+    <div>
+      <label
+        style={{
+          display: 'block',
+          fontWeight: 600,
+          marginBottom: 6
+        }}
+      >
+        {label}
+      </label>
+
+      <input
+        type={type}
+        value={value}
+        placeholder={placeholder}
+        onChange={(e) =>
+          onChange(e.target.value)
+        }
+        style={{
+          width: '100%',
+          boxSizing: 'border-box',
+          padding: '11px 12px',
+          border: '1px solid #d1d5db',
+          borderRadius: 8
+        }}
+      />
+    </div>
+  )
+}
+
+/* =========================================================
    INVENTARIO
-===================================================== */
+========================================================= */
 
 function Inventario({
   productos,
-  setProductos
+  cargarProductos,
+  usuario
 }) {
+  const [tipo, setTipo] =
+    useState('entrada')
 
-  const [codigo, setCodigo] =
+  const [productoId, setProductoId] =
     useState('')
 
   const [cantidad, setCantidad] =
     useState(1)
 
-  const [tipo, setTipo] =
-    useState('entrada')
+  const [motivo, setMotivo] =
+    useState('')
 
-  const [historial, setHistorial] =
-    useState(() =>
-      cargarDatos(
-        'castillo_movimientos',
-        []
-      )
-    )
+  const [busqueda, setBusqueda] =
+    useState('')
 
   const [mensaje, setMensaje] =
     useState('')
 
-  const buscarProducto = () => {
-
-    const encontrado =
-      productos.find(
-        (p) =>
-          p.codigo.toLowerCase() ===
-          codigo.trim().toLowerCase()
-      )
-
-    if (!encontrado) {
-      setMensaje(
-        'Producto no encontrado.'
-      )
-      return
-    }
-
-    const cantidadNumero =
-      Number(cantidad)
-
-    if (
-      !cantidadNumero ||
-      cantidadNumero < 1
-    ) {
-      setMensaje(
-        'Ingresa una cantidad válida.'
-      )
-      return
-    }
-
-    if (
-      tipo === 'salida' &&
-      encontrado.stock < cantidadNumero
-    ) {
-      setMensaje(
-        'No hay suficiente stock.'
-      )
-      return
-    }
-
-    const nuevoStock =
-      tipo === 'entrada'
-        ? encontrado.stock +
-          cantidadNumero
-        : encontrado.stock -
-          cantidadNumero
-
-    setProductos(
-      productos.map((producto) =>
-        producto.id === encontrado.id
-          ? {
-              ...producto,
-              stock: nuevoStock
-            }
-          : producto
-      )
+  const productoSeleccionado =
+    productos.find(
+      (p) =>
+        String(p.id) ===
+        String(productoId)
     )
 
-    const movimiento = {
-      id: Date.now(),
-      fecha: new Date().toLocaleString(),
-      codigo: encontrado.codigo,
-      producto: encontrado.producto,
-      tipo,
-      cantidad: cantidadNumero
+  const productosFiltrados =
+    productos.filter((p) => {
+      const texto =
+        busqueda.toLowerCase()
+
+      return (
+        p.producto
+          .toLowerCase()
+          .includes(texto) ||
+        p.codigo
+          .toLowerCase()
+          .includes(texto)
+      )
+    })
+
+  const registrarMovimiento =
+    async (e) => {
+      e.preventDefault()
+      setMensaje('')
+
+      if (!productoSeleccionado) {
+        setMensaje(
+          'Selecciona un producto.'
+        )
+        return
+      }
+
+      const cantidadMovimiento =
+        Number(cantidad)
+
+      if (
+        !cantidadMovimiento ||
+        cantidadMovimiento <= 0
+      ) {
+        setMensaje(
+          'La cantidad debe ser mayor que cero.'
+        )
+        return
+      }
+
+      if (
+        tipo === 'salida' &&
+        cantidadMovimiento >
+          productoSeleccionado.stock
+      ) {
+        setMensaje(
+          'No hay suficiente stock para realizar esta salida.'
+        )
+        return
+      }
+
+      const nuevoStock =
+        tipo === 'entrada'
+          ? productoSeleccionado.stock +
+            cantidadMovimiento
+          : productoSeleccionado.stock -
+            cantidadMovimiento
+
+      const { error: errorProducto } =
+        await supabase
+          .from('productos')
+          .update({
+            cantidad: nuevoStock,
+            updated_at:
+              new Date().toISOString()
+          })
+          .eq(
+            'id',
+            productoSeleccionado.id
+          )
+
+      if (errorProducto) {
+        console.error(errorProducto)
+
+        setMensaje(
+          'No se pudo actualizar el inventario.'
+        )
+
+        return
+      }
+
+      const { error: errorMovimiento } =
+        await supabase
+          .from('movimientos')
+          .insert({
+            producto_id:
+              productoSeleccionado.id,
+            tipo,
+            cantidad:
+              cantidadMovimiento,
+            usuario:
+              usuario.usuario,
+            motivo:
+              motivo.trim() || null
+          })
+
+      if (errorMovimiento) {
+        console.error(
+          errorMovimiento
+        )
+      }
+
+      setCantidad(1)
+      setMotivo('')
+      setMensaje(
+        tipo === 'entrada'
+          ? 'Entrada registrada correctamente.'
+          : 'Salida registrada correctamente.'
+      )
+
+      await cargarProductos()
     }
-
-    const nuevoHistorial = [
-      movimiento,
-      ...historial
-    ]
-
-    setHistorial(nuevoHistorial)
-
-    guardarDatos(
-      'castillo_movimientos',
-      nuevoHistorial
-    )
-
-    setMensaje(
-      tipo === 'entrada'
-        ? 'Entrada registrada correctamente.'
-        : 'Salida registrada correctamente.'
-    )
-
-    setCodigo('')
-    setCantidad(1)
-  }
 
   return (
     <>
       <div className="welcome">
-
         <div>
-          <h2>
-            Inventario
-          </h2>
+          <h2>Inventario</h2>
 
           <p>
             Registra entradas y salidas.
           </p>
         </div>
-
       </div>
 
-      <section className="panel">
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns:
+            'minmax(280px, 420px) 1fr',
+          gap: 20,
+          alignItems: 'start'
+        }}
+      >
 
-        <div className="panel-header">
+        <section className="panel">
 
-          <div>
-            <h3>
-              Movimiento de inventario
-            </h3>
+          <div className="panel-header">
+            <div>
+              <h3>
+                Movimiento
+              </h3>
 
-            <p>
-              Actualiza las existencias.
-            </p>
+              <p>
+                Actualiza el stock.
+              </p>
+            </div>
           </div>
 
-        </div>
+          <form
+            onSubmit={
+              registrarMovimiento
+            }
+          >
 
-        <div
-          style={{
-            padding: 22,
-            display: 'grid',
-            gridTemplateColumns:
-              'repeat(auto-fit,minmax(180px,1fr))',
-            gap: 15
-          }}
-        >
-
-          <div>
-            <label>
-              Código del producto
-            </label>
-
-            <input
-              value={codigo}
-              onChange={(e) =>
-                setCodigo(e.target.value)
-              }
-              placeholder="Ej: CAST-001"
+            <div
               style={{
-                width: '100%',
-                padding: 12,
-                marginTop: 6,
-                border: '1px solid #cbd5e1',
-                borderRadius: 10
+                display: 'flex',
+                gap: 8,
+                marginBottom: 18
               }}
-            />
-          </div>
+            >
 
-          <div>
-            <label>
-              Tipo
+              <button
+                type="button"
+                onClick={() =>
+                  setTipo('entrada')
+                }
+                style={{
+                  ...tipoBoton,
+                  ...(tipo === 'entrada'
+                    ? tipoActivo
+                    : {})
+                }}
+              >
+                <ArrowDownToLine
+                  size={17}
+                />
+                Entrada
+              </button>
+
+              <button
+                type="button"
+                onClick={() =>
+                  setTipo('salida')
+                }
+                style={{
+                  ...tipoBoton,
+                  ...(tipo === 'salida'
+                    ? tipoActivoSalida
+                    : {})
+                }}
+              >
+                <ArrowUpFromLine
+                  size={17}
+                />
+                Salida
+              </button>
+
+            </div>
+
+            <label style={labelStyle}>
+              Producto
             </label>
 
             <select
-              value={tipo}
+              value={productoId}
               onChange={(e) =>
-                setTipo(e.target.value)
+                setProductoId(
+                  e.target.value
+                )
               }
-              style={{
-                width: '100%',
-                padding: 12,
-                marginTop: 6,
-                border: '1px solid #cbd5e1',
-                borderRadius: 10
-              }}
+              style={inputStyle}
             >
-              <option value="entrada">
-                Entrada
+              <option value="">
+                Selecciona un producto
               </option>
 
-              <option value="salida">
-                Salida
-              </option>
+              {productos.map((p) => (
+                <option
+                  key={p.id}
+                  value={p.id}
+                >
+                  {p.codigo} - {p.producto}
+                </option>
+              ))}
             </select>
-          </div>
 
-          <div>
-            <label>
+            {productoSeleccionado && (
+              <div
+                style={{
+                  padding: 12,
+                  borderRadius: 9,
+                  background:
+                    '#f1f5f9',
+                  marginBottom: 15
+                }}
+              >
+                Stock actual:{' '}
+                <strong>
+                  {
+                    productoSeleccionado.stock
+                  }
+                </strong>
+              </div>
+            )}
+
+            <label style={labelStyle}>
               Cantidad
             </label>
 
@@ -1384,574 +1426,184 @@ function Inventario({
                   e.target.value
                 )
               }
-              style={{
-                width: '100%',
-                padding: 12,
-                marginTop: 6,
-                border: '1px solid #cbd5e1',
-                borderRadius: 10
-              }}
+              style={inputStyle}
             />
-          </div>
 
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'end'
-            }}
-          >
+            <label style={labelStyle}>
+              Motivo
+            </label>
+
+            <input
+              type="text"
+              placeholder="Compra, venta, devolución..."
+              value={motivo}
+              onChange={(e) =>
+                setMotivo(
+                  e.target.value
+                )
+              }
+              style={inputStyle}
+            />
+
+            {mensaje && (
+              <div
+                style={{
+                  padding: 12,
+                  marginBottom: 15,
+                  borderRadius: 8,
+                  background:
+                    mensaje.includes(
+                      'correctamente'
+                    )
+                      ? '#dcfce7'
+                      : '#fee2e2'
+                }}
+              >
+                {mensaje}
+              </div>
+            )}
 
             <button
-              className="login-button"
+              type="submit"
               style={{
+                ...botonPrincipal,
                 width: '100%'
               }}
-              onClick={buscarProducto}
             >
-              {tipo === 'entrada' ? (
-                <ArrowDownToLine size={17} />
-              ) : (
-                <ArrowUpFromLine size={17} />
-              )}
-
-              Registrar
+              <Save size={17} />
+              Registrar movimiento
             </button>
 
-          </div>
+          </form>
+        </section>
 
-        </div>
+        <section className="panel">
 
-        {mensaje && (
-          <div
-            style={{
-              margin: '0 22px 20px',
-              padding: 12,
-              borderRadius: 10,
-              background: '#eff6ff',
-              color: '#1d4ed8',
-              fontWeight: 700
-            }}
-          >
-            {mensaje}
-          </div>
-        )}
+          <div className="panel-header">
 
-      </section>
+            <div>
+              <h3>
+                Existencias
+              </h3>
 
-      <section
-        className="panel"
-        style={{ marginTop: 20 }}
-      >
-
-        <div className="panel-header">
-
-          <div>
-            <h3>
-              Historial de movimientos
-            </h3>
-
-            <p>
-              Últimas entradas y salidas
-            </p>
-          </div>
-
-        </div>
-
-        <div className="table-container">
-
-          <table>
-
-            <thead>
-              <tr>
-                <th>Fecha</th>
-                <th>Código</th>
-                <th>Producto</th>
-                <th>Tipo</th>
-                <th>Cantidad</th>
-              </tr>
-            </thead>
-
-            <tbody>
-
-              {historial.length === 0 ? (
-
-                <tr>
-                  <td
-                    colSpan="5"
-                    style={{
-                      textAlign: 'center'
-                    }}
-                  >
-                    No hay movimientos.
-                  </td>
-                </tr>
-
-              ) : (
-
-                historial.map(
-                  (movimiento) => (
-
-                    <tr
-                      key={movimiento.id}
-                    >
-
-                      <td>
-                        {movimiento.fecha}
-                      </td>
-
-                      <td>
-                        {movimiento.codigo}
-                      </td>
-
-                      <td>
-                        {movimiento.producto}
-                      </td>
-
-                      <td>
-
-                        {movimiento.tipo ===
-                        'entrada' ? (
-
-                          <span className="badge success">
-                            Entrada
-                          </span>
-
-                        ) : (
-
-                          <span className="badge danger">
-                            Salida
-                          </span>
-
-                        )}
-
-                      </td>
-
-                      <td>
-                        {movimiento.cantidad}
-                      </td>
-
-                    </tr>
-
-                  )
-                )
-
-              )}
-
-            </tbody>
-
-          </table>
-
-        </div>
-
-      </section>
-    </>
-  )
-}
-
-/* =====================================================
-   USUARIOS
-===================================================== */
-
-function Usuarios({
-  usuarios,
-  setUsuarios,
-  usuarioActual
-}) {
-
-  const [mostrarForm, setMostrarForm] =
-    useState(false)
-
-  const [editando, setEditando] =
-    useState(null)
-
-  const [form, setForm] = useState({
-    usuario: '',
-    password: '',
-    nombre: '',
-    rol: 'Vendedor'
-  })
-
-  const guardarUsuario = (e) => {
-
-    e.preventDefault()
-
-    if (
-      !form.usuario ||
-      !form.password ||
-      !form.nombre
-    ) {
-      alert(
-        'Completa todos los campos.'
-      )
-      return
-    }
-
-    if (editando) {
-
-      setUsuarios(
-        usuarios.map((u) =>
-          u.id === editando
-            ? {
-                ...u,
-                ...form
-              }
-            : u
-        )
-      )
-
-    } else {
-
-      const existe =
-        usuarios.some(
-          (u) =>
-            u.usuario ===
-            form.usuario
-        )
-
-      if (existe) {
-        alert(
-          'Ese usuario ya existe.'
-        )
-        return
-      }
-
-      setUsuarios([
-        ...usuarios,
-        {
-          id: Date.now(),
-          ...form
-        }
-      ])
-    }
-
-    setForm({
-      usuario: '',
-      password: '',
-      nombre: '',
-      rol: 'Vendedor'
-    })
-
-    setEditando(null)
-    setMostrarForm(false)
-  }
-
-  const editarUsuario = (u) => {
-
-    setForm({
-      usuario: u.usuario,
-      password: u.password,
-      nombre: u.nombre,
-      rol: u.rol
-    })
-
-    setEditando(u.id)
-    setMostrarForm(true)
-  }
-
-  const eliminarUsuario = (id) => {
-
-    if (id === usuarioActual.id) {
-      alert(
-        'No puedes eliminar el usuario con el que estás conectado.'
-      )
-      return
-    }
-
-    if (
-      !confirm(
-        '¿Eliminar este usuario?'
-      )
-    ) {
-      return
-    }
-
-    setUsuarios(
-      usuarios.filter(
-        (u) => u.id !== id
-      )
-    )
-  }
-
-  return (
-    <>
-      <div className="welcome">
-
-        <div>
-          <h2>
-            Usuarios
-          </h2>
-
-          <p>
-            Administra los usuarios del sistema.
-          </p>
-        </div>
-
-        <button
-          className="login-button"
-          style={{
-            width: 'auto',
-            padding: '0 18px'
-          }}
-          onClick={() => {
-            setForm({
-              usuario: '',
-              password: '',
-              nombre: '',
-              rol: 'Vendedor'
-            })
-            setEditando(null)
-            setMostrarForm(true)
-          }}
-        >
-          <UserPlus size={17} />
-          Nuevo usuario
-        </button>
-
-      </div>
-
-      <section className="panel">
-
-        <div className="panel-header">
-
-          <div>
-            <h3>
-              Usuarios registrados
-            </h3>
-
-            <p>
-              {usuarios.length} usuarios
-            </p>
-          </div>
-
-        </div>
-
-        {mostrarForm && (
-
-          <form
-            onSubmit={guardarUsuario}
-            style={{
-              padding: 20,
-              background: '#f8fafc',
-              borderBottom:
-                '1px solid #e2e8f0'
-            }}
-          >
-
-            <h3>
-              {editando
-                ? 'Editar usuario'
-                : 'Nuevo usuario'}
-            </h3>
-
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns:
-                  'repeat(auto-fit,minmax(180px,1fr))',
-                gap: 12,
-                marginTop: 15
-              }}
-            >
-
-              <input
-                placeholder="Usuario"
-                value={form.usuario}
-                onChange={(e) =>
-                  setForm({
-                    ...form,
-                    usuario:
-                      e.target.value
-                  })
-                }
-              />
-
-              <input
-                placeholder="Contraseña"
-                value={form.password}
-                onChange={(e) =>
-                  setForm({
-                    ...form,
-                    password:
-                      e.target.value
-                  })
-                }
-              />
-
-              <input
-                placeholder="Nombre"
-                value={form.nombre}
-                onChange={(e) =>
-                  setForm({
-                    ...form,
-                    nombre:
-                      e.target.value
-                  })
-                }
-              />
-
-              <select
-                value={form.rol}
-                onChange={(e) =>
-                  setForm({
-                    ...form,
-                    rol: e.target.value
-                  })
-                }
-              >
-                <option>
-                  Administrador
-                </option>
-
-                <option>
-                  Vendedor
-                </option>
-
-                <option>
-                  Bodega
-                </option>
-              </select>
-
+              <p>
+                Stock actual
+              </p>
             </div>
 
             <div
               style={{
                 display: 'flex',
-                gap: 10,
-                marginTop: 15
+                alignItems: 'center',
+                gap: 7
               }}
             >
+              <Search size={18} />
 
-              <button
-                type="submit"
-                className="login-button"
-                style={{
-                  width: 'auto',
-                  padding: '0 20px'
-                }}
-              >
-                <Save size={17} />
-                Guardar
-              </button>
-
-              <button
-                type="button"
-                onClick={() =>
-                  setMostrarForm(false)
+              <input
+                placeholder="Buscar..."
+                value={busqueda}
+                onChange={(e) =>
+                  setBusqueda(
+                    e.target.value
+                  )
                 }
                 style={{
-                  padding: '10px 18px',
-                  border: '1px solid #cbd5e1',
-                  borderRadius: 10,
-                  background: 'white',
-                  cursor: 'pointer'
+                  padding: '9px 11px',
+                  border:
+                    '1px solid #d1d5db',
+                  borderRadius: 8
                 }}
-              >
-                Cancelar
-              </button>
-
+              />
             </div>
 
-          </form>
+          </div>
 
-        )}
+          <div className="table-container">
 
-        <div className="table-container">
+            <table>
 
-          <table>
-
-            <thead>
-              <tr>
-                <th>Usuario</th>
-                <th>Nombre</th>
-                <th>Rol</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-
-            <tbody>
-
-              {usuarios.map((u) => (
-
-                <tr key={u.id}>
-
-                  <td>
-                    {u.usuario}
-                  </td>
-
-                  <td>
-                    {u.nombre}
-                  </td>
-
-                  <td>
-                    {u.rol}
-                  </td>
-
-                  <td>
-
-                    <button
-                      onClick={() =>
-                        editarUsuario(u)
-                      }
-                      style={{
-                        border: 'none',
-                        background: '#eff6ff',
-                        color: '#2563eb',
-                        padding: 8,
-                        borderRadius: 8,
-                        cursor: 'pointer',
-                        marginRight: 5
-                      }}
-                    >
-                      <Edit3 size={15} />
-                    </button>
-
-                    <button
-                      onClick={() =>
-                        eliminarUsuario(u.id)
-                      }
-                      style={{
-                        border: 'none',
-                        background: '#fef2f2',
-                        color: '#dc2626',
-                        padding: 8,
-                        borderRadius: 8,
-                        cursor: 'pointer'
-                      }}
-                    >
-                      <Trash2 size={15} />
-                    </button>
-
-                  </td>
-
+              <thead>
+                <tr>
+                  <th>Código</th>
+                  <th>Producto</th>
+                  <th>Marca</th>
+                  <th>Stock</th>
+                  <th>Mínimo</th>
+                  <th>Estado</th>
                 </tr>
+              </thead>
 
-              ))}
+              <tbody>
 
-            </tbody>
+                {productosFiltrados.map(
+                  (p) => {
+                    const bajo =
+                      p.stock <= p.minimo
 
-          </table>
+                    return (
+                      <tr key={p.id}>
 
-        </div>
+                        <td>{p.codigo}</td>
 
-      </section>
+                        <td>
+                          <strong>
+                            {p.producto}
+                          </strong>
+                        </td>
+
+                        <td>
+                          {p.marca || '-'}
+                        </td>
+
+                        <td>
+                          {p.stock}
+                        </td>
+
+                        <td>
+                          {p.minimo}
+                        </td>
+
+                        <td>
+                          {bajo ? (
+                            <span className="badge danger">
+                              ⚠ Bajo
+                            </span>
+                          ) : (
+                            <span className="badge success">
+                              ✓ Disponible
+                            </span>
+                          )}
+                        </td>
+
+                      </tr>
+                    )
+                  }
+                )}
+
+              </tbody>
+
+            </table>
+
+          </div>
+        </section>
+
+      </div>
     </>
   )
 }
 
-/* =====================================================
+/* =========================================================
    ESCÁNER
-===================================================== */
+========================================================= */
 
-function Escaner({ productos }) {
-
+function Escaner({
+  productos,
+  cargarProductos,
+  cambiarSeccion
+}) {
   const videoRef = useRef(null)
-
   const streamRef = useRef(null)
-
-  const detectorRef = useRef(null)
-
-  const [activo, setActivo] =
-    useState(false)
 
   const [codigo, setCodigo] =
     useState('')
@@ -1959,65 +1611,51 @@ function Escaner({ productos }) {
   const [resultado, setResultado] =
     useState(null)
 
+  const [escaneando, setEscaneando] =
+    useState(false)
+
   const [mensaje, setMensaje] =
     useState('')
 
-  const buscarCodigo = (valor) => {
+  const buscarCodigo = (codigoBuscado) => {
+    const texto =
+      codigoBuscado.trim()
+
+    if (!texto) return
 
     const encontrado =
       productos.find(
         (p) =>
           p.codigo.toLowerCase() ===
-          valor.toLowerCase()
+          texto.toLowerCase()
       )
 
-    if (encontrado) {
+    setResultado(
+      encontrado || null
+    )
 
-      setResultado(encontrado)
-
+    if (!encontrado) {
       setMensaje(
-        'Producto encontrado.'
+        'No encontramos un producto con ese código.'
       )
-
     } else {
-
-      setResultado(null)
-
-      setMensaje(
-        'No existe un producto con ese código.'
-      )
-
+      setMensaje('')
     }
   }
 
   const iniciarCamara = async () => {
+    setMensaje('')
+
+    if (
+      !('BarcodeDetector' in window)
+    ) {
+      setMensaje(
+        'Este navegador no tiene BarcodeDetector. Puedes escribir el código manualmente.'
+      )
+      return
+    }
 
     try {
-
-      if (
-        !('BarcodeDetector' in window)
-      ) {
-        setMensaje(
-          'Tu navegador no permite el escaneo automático. Puedes escribir el código manualmente.'
-        )
-        return
-      }
-
-      const detector =
-        new window.BarcodeDetector({
-          formats: [
-            'code_128',
-            'code_39',
-            'ean_13',
-            'ean_8',
-            'upc_a',
-            'upc_e'
-          ]
-        })
-
-      detectorRef.current =
-        detector
-
       const stream =
         await navigator.mediaDevices.getUserMedia(
           {
@@ -2025,8 +1663,7 @@ function Escaner({ productos }) {
               facingMode: {
                 ideal: 'environment'
               }
-            },
-            audio: false
+            }
           }
         )
 
@@ -2039,66 +1676,70 @@ function Escaner({ productos }) {
         await videoRef.current.play()
       }
 
-      setActivo(true)
+      setEscaneando(true)
+
+      const detector =
+        new window.BarcodeDetector({
+          formats: [
+            'code_128',
+            'code_39',
+            'ean_13',
+            'ean_8',
+            'upc_a',
+            'upc_e',
+            'qr_code'
+          ]
+        })
+
+      const detectar = async () => {
+        if (
+          !videoRef.current ||
+          !streamRef.current
+        ) {
+          return
+        }
+
+        try {
+          const codes =
+            await detector.detect(
+              videoRef.current
+            )
+
+          if (
+            codes &&
+            codes.length > 0
+          ) {
+            const valor =
+              codes[0].rawValue
+
+            setCodigo(valor)
+            buscarCodigo(valor)
+            detenerCamara()
+            return
+          }
+        } catch (error) {
+          console.error(error)
+        }
+
+        if (streamRef.current) {
+          requestAnimationFrame(
+            detectar
+          )
+        }
+      }
 
       detectar()
     } catch (error) {
-
       console.error(error)
 
       setMensaje(
-        'No se pudo abrir la cámara. Revisa el permiso de cámara del navegador.'
+        'No se pudo acceder a la cámara. Revisa los permisos del navegador.'
       )
     }
   }
 
-  const detectar = async () => {
-
-    if (
-      !videoRef.current ||
-      !detectorRef.current ||
-      !activo
-    ) {
-      return
-    }
-
-    try {
-
-      const codigos =
-        await detectorRef.current.detect(
-          videoRef.current
-        )
-
-      if (
-        codigos &&
-        codigos.length > 0
-      ) {
-
-        const valor =
-          codigos[0].rawValue
-
-        setCodigo(valor)
-
-        buscarCodigo(valor)
-
-        detenerCamara()
-
-        return
-      }
-
-    } catch (error) {
-      console.error(error)
-    }
-
-    requestAnimationFrame(
-      detectar
-    )
-  }
-
   const detenerCamara = () => {
-
     if (streamRef.current) {
-
       streamRef.current
         .getTracks()
         .forEach((track) =>
@@ -2108,268 +1749,531 @@ function Escaner({ productos }) {
       streamRef.current = null
     }
 
-    setActivo(false)
+    setEscaneando(false)
   }
 
   useEffect(() => {
-
     return () => {
       detenerCamara()
     }
-
   }, [])
 
   return (
     <>
       <div className="welcome">
-
         <div>
-          <h2>
-            Escáner
-          </h2>
+          <h2>Escáner</h2>
 
           <p>
-            Escanea el código de barras de un repuesto.
+            Busca rápidamente un repuesto por código.
           </p>
         </div>
-
       </div>
 
       <section className="panel">
 
         <div className="panel-header">
-
           <div>
             <h3>
-              Escáner de códigos
+              Escanear código
             </h3>
 
             <p>
-              Usa la cámara trasera del iPhone.
+              Usa la cámara o escribe el código.
             </p>
           </div>
-
-          <ScanLine size={24} />
-
         </div>
 
         <div
           style={{
-            padding: 22
+            display: 'flex',
+            gap: 10,
+            flexWrap: 'wrap',
+            marginBottom: 20
           }}
         >
 
-          {!activo && (
+          <input
+            value={codigo}
+            onChange={(e) =>
+              setCodigo(
+                e.target.value
+              )
+            }
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                buscarCodigo(codigo)
+              }
+            }}
+            placeholder="Código del producto"
+            style={{
+              flex: 1,
+              minWidth: 220,
+              padding: '12px 14px',
+              border:
+                '1px solid #d1d5db',
+              borderRadius: 8
+            }}
+          />
 
+          <button
+            onClick={() =>
+              buscarCodigo(codigo)
+            }
+            style={botonPrincipal}
+          >
+            <Search size={17} />
+            Buscar
+          </button>
+
+          {!escaneando ? (
             <button
-              className="login-button"
-              style={{
-                width: 'auto',
-                padding: '0 20px'
-              }}
               onClick={iniciarCamara}
+              style={botonPrincipal}
             >
-              <Camera size={18} />
-              Abrir cámara
+              <ScanLine size={17} />
+              Escanear
             </button>
-
-          )}
-
-          {activo && (
-
+          ) : (
             <button
               onClick={detenerCamara}
-              style={{
-                padding: '12px 18px',
-                border: 'none',
-                borderRadius: 10,
-                background: '#dc2626',
-                color: 'white',
-                fontWeight: 700,
-                cursor: 'pointer'
-              }}
+              style={botonSecundario}
             >
-              Cerrar cámara
+              <XCircle size={17} />
+              Detener cámara
             </button>
-
           )}
 
+        </div>
+
+        {escaneando && (
           <div
             style={{
-              marginTop: 18,
               maxWidth: 500,
-              borderRadius: 15,
-              overflow: 'hidden',
-              background: '#020617'
+              margin: '0 auto 20px'
             }}
           >
-
             <video
               ref={videoRef}
               muted
               playsInline
               style={{
                 width: '100%',
-                display:
-                  activo
-                    ? 'block'
-                    : 'none'
+                borderRadius: 12,
+                background: '#000'
               }}
             />
 
-            {!activo && (
-              <div
-                style={{
-                  padding: 40,
-                  color: 'white',
-                  textAlign: 'center'
-                }}
-              >
-                <ScanLine
-                  size={45}
-                />
-
-                <p>
-                  Cámara apagada
-                </p>
-              </div>
-            )}
-
+            <p
+              style={{
+                textAlign: 'center'
+              }}
+            >
+              Apunta la cámara al código.
+            </p>
           </div>
+        )}
 
+        {mensaje && (
           <div
             style={{
-              marginTop: 20,
-              display: 'flex',
-              gap: 10,
-              maxWidth: 500
+              padding: 14,
+              borderRadius: 9,
+              background: '#fff7ed',
+              marginBottom: 15
+            }}
+          >
+            {mensaje}
+          </div>
+        )}
+
+        {resultado && (
+          <div
+            style={{
+              padding: 20,
+              borderRadius: 12,
+              background: '#f8fafc',
+              border:
+                '1px solid #e2e8f0'
             }}
           >
 
-            <input
-              value={codigo}
-              onChange={(e) =>
-                setCodigo(e.target.value)
-              }
-              placeholder="Escribe o escanea un código"
-              style={{
-                flex: 1,
-                padding: 12,
-                border:
-                  '1px solid #cbd5e1',
-                borderRadius: 10
-              }}
-            />
+            <h3>
+              {resultado.producto}
+            </h3>
+
+            <p>
+              Código:{' '}
+              <strong>
+                {resultado.codigo}
+              </strong>
+            </p>
+
+            <p>
+              Marca:{' '}
+              {resultado.marca || '-'}
+            </p>
+
+            <p>
+              Stock:{' '}
+              <strong>
+                {resultado.stock}
+              </strong>
+            </p>
+
+            <p>
+              Precio de venta: L{' '}
+              {resultado.precioVenta.toLocaleString()}
+            </p>
 
             <button
               onClick={() =>
-                buscarCodigo(codigo)
+                cambiarSeccion(
+                  'inventario'
+                )
               }
-              style={{
-                padding: '0 15px',
-                border: 'none',
-                borderRadius: 10,
-                background: '#2563eb',
-                color: 'white',
-                cursor: 'pointer'
-              }}
+              style={botonPrincipal}
             >
-              Buscar
+              <ArrowDownToLine size={17} />
+              Ir a inventario
             </button>
 
           </div>
-
-          {mensaje && (
-            <p
-              style={{
-                marginTop: 15,
-                fontWeight: 700
-              }}
-            >
-              {mensaje}
-            </p>
-          )}
-
-          {resultado && (
-
-            <div
-              className="panel"
-              style={{
-                marginTop: 20,
-                padding: 20,
-                maxWidth: 500
-              }}
-            >
-
-              <h3>
-                Producto encontrado
-              </h3>
-
-              <p>
-                <strong>
-                  Código:
-                </strong>{' '}
-                {resultado.codigo}
-              </p>
-
-              <p>
-                <strong>
-                  Producto:
-                </strong>{' '}
-                {resultado.producto}
-              </p>
-
-              <p>
-                <strong>
-                  Marca:
-                </strong>{' '}
-                {resultado.marca}
-              </p>
-
-              <p>
-                <strong>
-                  Año:
-                </strong>{' '}
-                {resultado.anio}
-              </p>
-
-              <p>
-                <strong>
-                  Stock:
-                </strong>{' '}
-                {resultado.stock}
-              </p>
-
-              <p>
-                <strong>
-                  Precio:
-                </strong>{' '}
-                L {Number(
-                  resultado.precioVenta
-                ).toLocaleString()}
-              </p>
-
-            </div>
-
-          )}
-
-        </div>
+        )}
 
       </section>
     </>
   )
 }
 
-/* =====================================================
-   DASHBOARD PRINCIPAL
-===================================================== */
+/* =========================================================
+   USUARIOS
+========================================================= */
 
-function Dashboard({
-  usuario,
-  usuarios,
-  setUsuarios,
-  onLogout
-}) {
+function Usuarios() {
+  const [usuarios, setUsuarios] =
+    useState([])
+
+  const [cargando, setCargando] =
+    useState(true)
+
+  const cargarUsuarios =
+    async () => {
+      setCargando(true)
+
+      const { data, error } =
+        await supabase
+          .from('usuarios')
+          .select(
+            'id, usuario, nombre, rol, activo, created_at'
+          )
+          .order('id')
+
+      if (error) {
+        console.error(error)
+      } else {
+        setUsuarios(data || [])
+      }
+
+      setCargando(false)
+    }
+
+  useEffect(() => {
+    cargarUsuarios()
+  }, [])
+
+  const cambiarEstado =
+    async (usuario) => {
+      const { error } =
+        await supabase
+          .from('usuarios')
+          .update({
+            activo:
+              !usuario.activo
+          })
+          .eq(
+            'id',
+            usuario.id
+          )
+
+      if (error) {
+        alert(
+          'No se pudo cambiar el estado.'
+        )
+        return
+      }
+
+      cargarUsuarios()
+    }
+
+  return (
+    <>
+      <div className="welcome">
+        <div>
+          <h2>Usuarios</h2>
+
+          <p>
+            Usuarios registrados en el sistema.
+          </p>
+        </div>
+      </div>
+
+      <section className="panel">
+
+        <div className="panel-header">
+          <div>
+            <h3>
+              Usuarios
+            </h3>
+
+            <p>
+              {usuarios.length}{' '}
+              usuario(s)
+            </p>
+          </div>
+
+          <button
+            onClick={cargarUsuarios}
+            style={botonSecundario}
+          >
+            <RefreshCw size={17} />
+            Actualizar
+          </button>
+        </div>
+
+        <div className="table-container">
+
+          <table>
+
+            <thead>
+              <tr>
+                <th>Usuario</th>
+                <th>Nombre</th>
+                <th>Rol</th>
+                <th>Estado</th>
+                <th>Acción</th>
+              </tr>
+            </thead>
+
+            <tbody>
+
+              {cargando ? (
+                <tr>
+                  <td colSpan="5">
+                    Cargando usuarios...
+                  </td>
+                </tr>
+              ) : usuarios.length === 0 ? (
+                <tr>
+                  <td colSpan="5">
+                    No hay usuarios registrados.
+                  </td>
+                </tr>
+              ) : (
+                usuarios.map(
+                  (u) => (
+                    <tr key={u.id}>
+
+                      <td>
+                        <strong>
+                          {u.usuario}
+                        </strong>
+                      </td>
+
+                      <td>
+                        {u.nombre}
+                      </td>
+
+                      <td>
+                        {u.rol}
+                      </td>
+
+                      <td>
+                        {u.activo ? (
+                          <span className="badge success">
+                            Activo
+                          </span>
+                        ) : (
+                          <span className="badge danger">
+                            Inactivo
+                          </span>
+                        )}
+                      </td>
+
+                      <td>
+                        <button
+                          onClick={() =>
+                            cambiarEstado(u)
+                          }
+                          style={
+                            botonSecundario
+                          }
+                        >
+                          {u.activo
+                            ? 'Desactivar'
+                            : 'Activar'}
+                        </button>
+                      </td>
+
+                    </tr>
+                  )
+                )
+              )}
+
+            </tbody>
+
+          </table>
+
+        </div>
+      </section>
+    </>
+  )
+}
+
+/* =========================================================
+   ESTILOS EN LÍNEA AUXILIARES
+========================================================= */
+
+const modalFondo = {
+  position: 'fixed',
+  inset: 0,
+  background:
+    'rgba(15, 23, 42, .65)',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: 20,
+  zIndex: 1000,
+  overflowY: 'auto'
+}
+
+const modalCaja = {
+  width: '100%',
+  maxWidth: 850,
+  background: '#fff',
+  borderRadius: 14,
+  padding: 22,
+  boxSizing: 'border-box',
+  maxHeight: '92vh',
+  overflowY: 'auto'
+}
+
+const modalHeader = {
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  marginBottom: 20
+}
+
+const botonCerrar = {
+  border: 0,
+  background: '#f1f5f9',
+  borderRadius: 8,
+  padding: 8,
+  cursor: 'pointer'
+}
+
+const formGrid = {
+  display: 'grid',
+  gridTemplateColumns:
+    'repeat(auto-fit, minmax(210px, 1fr))',
+  gap: 15
+}
+
+const mensajeError = {
+  marginTop: 15,
+  padding: 12,
+  borderRadius: 8,
+  background: '#fee2e2',
+  display: 'flex',
+  gap: 8,
+  alignItems: 'center'
+}
+
+const botonPrincipal = {
+  border: 0,
+  borderRadius: 8,
+  padding: '11px 16px',
+  cursor: 'pointer',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: 7,
+  fontWeight: 600,
+  background: '#0f172a',
+  color: '#fff'
+}
+
+const botonSecundario = {
+  border: '1px solid #d1d5db',
+  borderRadius: 8,
+  padding: '10px 14px',
+  cursor: 'pointer',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: 7,
+  background: '#fff'
+}
+
+const tipoBoton = {
+  flex: 1,
+  border: '1px solid #d1d5db',
+  borderRadius: 8,
+  padding: 11,
+  cursor: 'pointer',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: 6,
+  background: '#fff'
+}
+
+const tipoActivo = {
+  background: '#dcfce7',
+  borderColor: '#22c55e'
+}
+
+const tipoActivoSalida = {
+  background: '#fee2e2',
+  borderColor: '#ef4444'
+}
+
+const labelStyle = {
+  display: 'block',
+  fontWeight: 600,
+  marginBottom: 6
+}
+
+const inputStyle = {
+  width: '100%',
+  boxSizing: 'border-box',
+  padding: '11px 12px',
+  border: '1px solid #d1d5db',
+  borderRadius: 8,
+  marginBottom: 15
+}
+
+/* =========================================================
+   APP PRINCIPAL
+========================================================= */
+
+function App() {
+  const [usuario, setUsuario] =
+    useState(() => {
+      try {
+        const guardado =
+          localStorage.getItem(
+            'inventario_usuario'
+          )
+
+        return guardado
+          ? JSON.parse(guardado)
+          : null
+      } catch {
+        return null
+      }
+    })
 
   const [menuAbierto, setMenuAbierto] =
     useState(false)
@@ -2378,76 +2282,136 @@ function Dashboard({
     useState('dashboard')
 
   const [productos, setProductos] =
-    useState(() =>
-      cargarDatos(
-        'castillo_productos',
-        PRODUCTOS_INICIALES
+    useState([])
+
+  const [cargando, setCargando] =
+    useState(false)
+
+  /* =====================================================
+     CARGAR PRODUCTOS
+  ===================================================== */
+
+  const cargarProductos =
+    async () => {
+      setCargando(true)
+
+      const { data, error } =
+        await supabase
+          .from('productos')
+          .select('*')
+          .order('id', {
+            ascending: true
+          })
+
+      if (error) {
+        console.error(
+          'Error cargando productos:',
+          error
+        )
+
+        setCargando(false)
+        return
+      }
+
+      if (data && data.length > 0) {
+        setProductos(
+          data.map(convertirProducto)
+        )
+      } else {
+        /*
+          Si todavía no tienes productos
+          en Supabase, se muestran los
+          productos de ejemplo solamente
+          en pantalla.
+        */
+        setProductos(
+          PRODUCTOS_INICIALES
+        )
+      }
+
+      setCargando(false)
+    }
+
+  /* =====================================================
+     SINCRONIZACIÓN EN TIEMPO REAL
+  ===================================================== */
+
+  useEffect(() => {
+    if (!usuario) return
+
+    cargarProductos()
+
+    const canal =
+      supabase
+        .channel(
+          'inventario-productos'
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'productos'
+          },
+          () => {
+            cargarProductos()
+          }
+        )
+        .subscribe()
+
+    return () => {
+      supabase.removeChannel(
+        canal
       )
+    }
+  }, [usuario])
+
+  /* =====================================================
+     LOGIN
+  ===================================================== */
+
+  const iniciarSesion = (
+    usuarioIngresado
+  ) => {
+    setUsuario(
+      usuarioIngresado
     )
 
-  useEffect(() => {
-    guardarDatos(
-      'castillo_productos',
-      productos
+    setSeccion(
+      'dashboard'
     )
-  }, [productos])
+  }
 
-  useEffect(() => {
-    guardarDatos(
-      'castillo_usuarios',
-      usuarios
+  /* =====================================================
+     LOGOUT
+  ===================================================== */
+
+  const cerrarSesion = () => {
+    localStorage.removeItem(
+      'inventario_usuario'
     )
-  }, [usuarios])
 
-  const cambiarSeccion = (nueva) => {
-
-    setSeccion(nueva)
+    setUsuario(null)
     setMenuAbierto(false)
   }
 
-  let contenido = null
+  /* =====================================================
+     CAMBIAR SECCIÓN
+  ===================================================== */
 
-  if (seccion === 'dashboard') {
+  const cambiarSeccion = (
+    nuevaSeccion
+  ) => {
+    setSeccion(nuevaSeccion)
+    setMenuAbierto(false)
+  }
 
-    contenido = (
-      <DashboardHome
-        productos={productos}
-      />
-    )
-
-  } else if (seccion === 'productos') {
-
-    contenido = (
-      <Productos
-        productos={productos}
-        setProductos={setProductos}
-      />
-    )
-
-  } else if (seccion === 'inventario') {
-
-    contenido = (
-      <Inventario
-        productos={productos}
-        setProductos={setProductos}
-      />
-    )
-
-  } else if (seccion === 'usuarios') {
-
-    contenido = (
-      <Usuarios
-        usuarios={usuarios}
-        setUsuarios={setUsuarios}
-        usuarioActual={usuario}
-      />
-    )
-
-  } else if (seccion === 'escaner') {
-
-    contenido = (
-      <Escaner
-        productos={productos}
+  if (!usuario) {
+    return (
+      <Login
+        onLogin={
+          iniciarSesion
+        }
       />
     )
   }
@@ -2455,7 +2419,9 @@ function Dashboard({
   return (
     <div className="app">
 
-      {/* TOPBAR */}
+      {/* =================================================
+          BARRA SUPERIOR
+      ================================================= */}
 
       <header className="topbar">
 
@@ -2508,7 +2474,7 @@ function Dashboard({
 
           <button
             className="logout-button"
-            onClick={onLogout}
+            onClick={cerrarSesion}
           >
             <LogOut size={19} />
 
@@ -2521,7 +2487,9 @@ function Dashboard({
 
       </header>
 
-      {/* SIDEBAR */}
+      {/* =================================================
+          SIDEBAR
+      ================================================= */}
 
       <aside
         className={
@@ -2561,7 +2529,9 @@ function Dashboard({
             )
           }
         >
-          <LayoutDashboard size={19} />
+          <LayoutDashboard
+            size={19}
+          />
           Dashboard
         </button>
 
@@ -2631,7 +2601,7 @@ function Dashboard({
 
         <button
           className="sidebar-logout"
-          onClick={onLogout}
+          onClick={cerrarSesion}
         >
           <LogOut size={19} />
           Cerrar sesión
@@ -2639,60 +2609,94 @@ function Dashboard({
 
       </aside>
 
-      {/* CONTENIDO */}
+      {/* =================================================
+          CONTENIDO
+      ================================================= */}
 
       <main className="content">
-        {contenido}
+
+        {cargando && (
+          <div
+            style={{
+              padding: 10,
+              textAlign: 'right',
+              fontSize: 13,
+              opacity: 0.7
+            }}
+          >
+            Actualizando inventario...
+          </div>
+        )}
+
+        {seccion === 'dashboard' && (
+          <Dashboard
+            usuario={usuario}
+            onLogout={
+              cerrarSesion
+            }
+            productos={
+              productos
+            }
+            cambiarSeccion={
+              cambiarSeccion
+            }
+            cargarProductos={
+              cargarProductos
+            }
+          />
+        )}
+
+        {seccion === 'productos' && (
+          <Productos
+            productos={
+              productos
+            }
+            cargarProductos={
+              cargarProductos
+            }
+            usuario={usuario}
+          />
+        )}
+
+        {seccion === 'inventario' && (
+          <Inventario
+            productos={
+              productos
+            }
+            cargarProductos={
+              cargarProductos
+            }
+            usuario={usuario}
+          />
+        )}
+
+        {seccion === 'escaner' && (
+          <Escaner
+            productos={
+              productos
+            }
+            cargarProductos={
+              cargarProductos
+            }
+            cambiarSeccion={
+              cambiarSeccion
+            }
+          />
+        )}
+
+        {seccion === 'usuarios' && (
+          <Usuarios />
+        )}
+
       </main>
 
     </div>
   )
 }
 
-/* =====================================================
-   APP
-===================================================== */
-
-function App() {
-
-  const [usuario, setUsuario] =
-    useState(null)
-
-  const [usuarios, setUsuarios] =
-    useState(() =>
-      cargarDatos(
-        'castillo_usuarios',
-        USUARIOS_INICIALES
-      )
-    )
-
-  const cerrarSesion = () => {
-    setUsuario(null)
-  }
-
-  if (!usuario) {
-
-    return (
-      <Login
-        usuarios={usuarios}
-        onLogin={setUsuario}
-      />
-    )
-  }
-
-  return (
-    <Dashboard
-      usuario={usuario}
-      usuarios={usuarios}
-      setUsuarios={setUsuarios}
-      onLogout={cerrarSesion}
-    />
-  )
-}
-
-/* =====================================================
-   INICIAR
-===================================================== */
+/* =========================================================
+   INICIAR APLICACIÓN
+========================================================= */
 
 createRoot(
   document.getElementById('root')
