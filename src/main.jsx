@@ -42,6 +42,7 @@ const USUARIOS = [
 function Login({ onLogin }) {
   const [usuario, setUsuario] = useState('')
   const [password, setPassword] = useState('')
+  const [mostrarPassword, setMostrarPassword] = useState(false)
   const [error, setError] = useState('')
 
   const iniciarSesion = (e) => {
@@ -64,52 +65,92 @@ function Login({ onLogin }) {
 
   return (
     <div className="login-page">
-      <div className="login-card">
-        <div className="login-logo">
-          📦
-        </div>
+      <div className="login-background">
+        <div className="login-card">
 
-        <h1>Inventario Castillo</h1>
-        <p className="login-subtitle">
-          Sistema de gestión de inventario
-        </p>
-
-        <form onSubmit={iniciarSesion}>
-          <label>Usuario</label>
-
-          <input
-            type="text"
-            placeholder="Escribe tu usuario"
-            value={usuario}
-            onChange={(e) => setUsuario(e.target.value)}
-            autoComplete="username"
-          />
-
-          <label>Contraseña</label>
-
-          <input
-            type="password"
-            placeholder="Escribe tu contraseña"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            autoComplete="current-password"
-          />
-
-          {error && (
-            <div className="login-error">
-              <AlertTriangle size={18} />
-              {error}
+          <div className="login-brand">
+            <div className="login-logo">
+              📦
             </div>
-          )}
 
-          <button type="submit" className="login-button">
-            Iniciar sesión
-          </button>
-        </form>
+            <h1>Inventario Castillo</h1>
 
-        <div className="login-help">
-          <p>Usuarios iniciales:</p>
-          <small>admin · vendedor1 · vendedor2 · bodega</small>
+            <p>
+              Sistema de gestión de inventario
+            </p>
+          </div>
+
+          <form onSubmit={iniciarSesion}>
+
+            <div className="input-group">
+              <label>Usuario</label>
+
+              <div className="input-wrapper">
+                <span>👤</span>
+
+                <input
+                  type="text"
+                  placeholder="Ingresa tu usuario"
+                  value={usuario}
+                  onChange={(e) => {
+                    setUsuario(e.target.value)
+                    setError('')
+                  }}
+                  autoComplete="username"
+                />
+              </div>
+            </div>
+
+            <div className="input-group">
+              <label>Contraseña</label>
+
+              <div className="input-wrapper">
+                <span>🔒</span>
+
+                <input
+                  type={mostrarPassword ? 'text' : 'password'}
+                  placeholder="Ingresa tu contraseña"
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value)
+                    setError('')
+                  }}
+                  autoComplete="current-password"
+                />
+
+                <button
+                  type="button"
+                  className="show-password"
+                  onClick={() =>
+                    setMostrarPassword(!mostrarPassword)
+                  }
+                >
+                  {mostrarPassword ? 'Ocultar' : 'Ver'}
+                </button>
+              </div>
+            </div>
+
+            {error && (
+              <div className="login-error">
+                ⚠️ {error}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              className="login-button"
+            >
+              INICIAR SESIÓN
+            </button>
+
+          </form>
+
+          <div className="login-footer">
+            <span>Inventario Castillo</span>
+            <span>•</span>
+            <span>Sistema de Inventario</span>
+          </div>
+
         </div>
       </div>
     </div>
