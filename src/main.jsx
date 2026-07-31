@@ -8,9 +8,15 @@ import {
   Menu,
   X,
   AlertTriangle,
-  DollarSign
+  DollarSign,
+  Boxes,
+  TrendingUp
 } from 'lucide-react'
 import './index.css'
+
+/* =========================================
+   USUARIOS
+========================================= */
 
 const USUARIOS = [
   {
@@ -39,6 +45,10 @@ const USUARIOS = [
   }
 ]
 
+/* =========================================
+   LOGIN
+========================================= */
+
 function Login({ onLogin }) {
   const [usuario, setUsuario] = useState('')
   const [password, setPassword] = useState('')
@@ -66,27 +76,44 @@ function Login({ onLogin }) {
   return (
     <div className="login-page">
       <div className="login-background">
+
         <div className="login-card">
 
+          {/* LOGO / EMPRESA */}
+
           <div className="login-brand">
+
             <div className="login-logo">
-              📦
+              ⚡
             </div>
 
-            <h1>Inventario Castillo</h1>
+            <h1>
+              CASTILLO ELECTRIPARTES
+            </h1>
 
             <p>
-              Sistema de gestión de inventario
+              SISTEMA DE INVENTARIO
             </p>
+
+            <div className="login-line"></div>
+
           </div>
+
+          {/* FORMULARIO */}
 
           <form onSubmit={iniciarSesion}>
 
             <div className="input-group">
-              <label>Usuario</label>
+
+              <label>
+                Usuario
+              </label>
 
               <div className="input-wrapper">
-                <span>👤</span>
+
+                <span>
+                  👤
+                </span>
 
                 <input
                   type="text"
@@ -98,17 +125,29 @@ function Login({ onLogin }) {
                   }}
                   autoComplete="username"
                 />
+
               </div>
+
             </div>
 
             <div className="input-group">
-              <label>Contraseña</label>
+
+              <label>
+                Contraseña
+              </label>
 
               <div className="input-wrapper">
-                <span>🔒</span>
+
+                <span>
+                  🔒
+                </span>
 
                 <input
-                  type={mostrarPassword ? 'text' : 'password'}
+                  type={
+                    mostrarPassword
+                      ? 'text'
+                      : 'password'
+                  }
                   placeholder="Ingresa tu contraseña"
                   value={password}
                   onChange={(e) => {
@@ -122,17 +161,24 @@ function Login({ onLogin }) {
                   type="button"
                   className="show-password"
                   onClick={() =>
-                    setMostrarPassword(!mostrarPassword)
+                    setMostrarPassword(
+                      !mostrarPassword
+                    )
                   }
                 >
-                  {mostrarPassword ? 'Ocultar' : 'Ver'}
+                  {mostrarPassword
+                    ? 'Ocultar'
+                    : 'Ver'}
                 </button>
+
               </div>
+
             </div>
 
             {error && (
               <div className="login-error">
-                ⚠️ {error}
+                <AlertTriangle size={17} />
+                <span>{error}</span>
               </div>
             )}
 
@@ -146,94 +192,218 @@ function Login({ onLogin }) {
           </form>
 
           <div className="login-footer">
-            <span>Inventario Castillo</span>
+            <span>
+              Castillo Electripartes
+            </span>
+
             <span>•</span>
-            <span>Sistema de Inventario</span>
+
+            <span>
+              Inventario
+            </span>
           </div>
 
         </div>
+
       </div>
     </div>
   )
 }
 
+/* =========================================
+   PRODUCTOS DE EJEMPLO
+========================================= */
+
+const PRODUCTOS_INICIALES = [
+  {
+    id: 1,
+    producto: 'Filtro de aceite Toyota',
+    categoria: 'Filtros',
+    stock: 15,
+    minimo: 10,
+    proveedor: 'Proveedor Toyota',
+    precioCompra: 150,
+    precioVenta: 250
+  },
+  {
+    id: 2,
+    producto: 'Foco H7 LED',
+    categoria: 'Iluminación',
+    stock: 5,
+    minimo: 8,
+    proveedor: 'Proveedor LED',
+    precioCompra: 500,
+    precioVenta: 850
+  },
+  {
+    id: 3,
+    producto: 'Banda Toyota',
+    categoria: 'Motor',
+    stock: 20,
+    minimo: 5,
+    proveedor: 'Proveedor Motor',
+    precioCompra: 300,
+    precioVenta: 450
+  },
+  {
+    id: 4,
+    producto: 'Stop Isuzu D-Max',
+    categoria: 'Iluminación',
+    stock: 7,
+    minimo: 5,
+    proveedor: 'Proveedor Isuzu',
+    precioCompra: 800,
+    precioVenta: 1200
+  }
+]
+
+/* =========================================
+   DASHBOARD
+========================================= */
+
 function Dashboard({ usuario, onLogout }) {
-  const [menuAbierto, setMenuAbierto] = useState(false)
 
-  const productos = [
-    {
-      id: 1,
-      producto: 'Filtro de aceite',
-      categoria: 'Filtros',
-      stock: 15,
-      minimo: 10,
-      precio: 250
-    },
-    {
-      id: 2,
-      producto: 'Foco H7 LED',
-      categoria: 'Iluminación',
-      stock: 5,
-      minimo: 8,
-      precio: 850
-    },
-    {
-      id: 3,
-      producto: 'Banda Toyota',
-      categoria: 'Motor',
-      stock: 20,
-      minimo: 5,
-      precio: 450
-    }
-  ]
+  const [menuAbierto, setMenuAbierto] =
+    useState(false)
 
-  const valorInventario = productos.reduce(
-    (total, producto) =>
-      total + producto.stock * producto.precio,
-    0
+  const [productos] = useState(
+    PRODUCTOS_INICIALES
   )
 
-  const productosBajos = productos.filter(
-    (producto) => producto.stock <= producto.minimo
-  )
+  const valorInventario =
+    productos.reduce(
+      (total, producto) =>
+        total +
+        producto.stock *
+          producto.precioCompra,
+      0
+    )
+
+  const valorVenta =
+    productos.reduce(
+      (total, producto) =>
+        total +
+        producto.stock *
+          producto.precioVenta,
+      0
+    )
+
+  const stockBajo =
+    productos.filter(
+      (producto) =>
+        producto.stock <=
+        producto.minimo
+    )
+
+  const totalUnidades =
+    productos.reduce(
+      (total, producto) =>
+        total + producto.stock,
+      0
+    )
 
   return (
     <div className="app">
+
+      {/* =================================
+          BARRA SUPERIOR
+      ================================= */}
+
       <header className="topbar">
+
         <button
           className="menu-button"
-          onClick={() => setMenuAbierto(!menuAbierto)}
+          onClick={() =>
+            setMenuAbierto(
+              !menuAbierto
+            )
+          }
         >
-          {menuAbierto ? <X /> : <Menu />}
+          {menuAbierto ? (
+            <X />
+          ) : (
+            <Menu />
+          )}
         </button>
 
         <div className="brand">
-          📦 Inventario Castillo
+
+          <div className="brand-logo">
+            ⚡
+          </div>
+
+          <div>
+            <strong>
+              CASTILLO ELECTRIPARTES
+            </strong>
+
+            <small>
+              Inventario
+            </small>
+          </div>
+
         </div>
 
         <div className="user-info">
-          <div>
-            <strong>{usuario.nombre}</strong>
-            <span>{usuario.rol}</span>
+
+          <div className="user-text">
+
+            <strong>
+              {usuario.nombre}
+            </strong>
+
+            <span>
+              {usuario.rol}
+            </span>
+
           </div>
 
           <button
             className="logout-button"
             onClick={onLogout}
-            title="Cerrar sesión"
           >
-            <LogOut size={20} />
-            <span>Cerrar sesión</span>
+            <LogOut size={19} />
+
+            <span>
+              Cerrar sesión
+            </span>
           </button>
+
         </div>
+
       </header>
 
-      <aside className={menuAbierto ? 'sidebar open' : 'sidebar'}>
-        <div className="sidebar-title">
-          Inventario Castillo
+      {/* =================================
+          MENÚ
+      ================================= */}
+
+      <aside
+        className={
+          menuAbierto
+            ? 'sidebar open'
+            : 'sidebar'
+        }
+      >
+
+        <div className="sidebar-brand">
+
+          <div className="sidebar-logo">
+            ⚡
+          </div>
+
+          <div>
+            <strong>
+              CASTILLO
+            </strong>
+
+            <span>
+              ELECTRIPARTES
+            </span>
+          </div>
+
         </div>
 
-        <button>
+        <button className="active">
           <LayoutDashboard size={19} />
           Dashboard
         </button>
@@ -244,133 +414,346 @@ function Dashboard({ usuario, onLogout }) {
         </button>
 
         <button>
+          <Boxes size={19} />
+          Inventario
+        </button>
+
+        <button>
           <Users size={19} />
           Usuarios
         </button>
 
         <button
-          onClick={onLogout}
           className="sidebar-logout"
+          onClick={onLogout}
         >
           <LogOut size={19} />
           Cerrar sesión
         </button>
+
       </aside>
 
+      {/* =================================
+          CONTENIDO
+      ================================= */}
+
       <main className="content">
+
         <div className="welcome">
-          <h2>Dashboard</h2>
-          <p>
-            Bienvenido, {usuario.nombre}.
-          </p>
+
+          <div>
+            <h2>
+              Dashboard
+            </h2>
+
+            <p>
+              Bienvenido, {usuario.nombre}.
+            </p>
+          </div>
+
+          <div className="role-badge">
+            {usuario.rol}
+          </div>
+
         </div>
 
+        {/* =================================
+            KPI
+        ================================= */}
+
         <div className="kpi-grid">
+
           <div className="kpi-card">
+
             <div className="kpi-icon">
               <Package />
             </div>
 
             <div>
-              <span>Productos</span>
-              <strong>{productos.length}</strong>
+              <span>
+                Productos
+              </span>
+
+              <strong>
+                {productos.length}
+              </strong>
             </div>
+
           </div>
 
           <div className="kpi-card">
+
+            <div className="kpi-icon">
+              <Boxes />
+            </div>
+
+            <div>
+              <span>
+                Unidades
+              </span>
+
+              <strong>
+                {totalUnidades}
+              </strong>
+            </div>
+
+          </div>
+
+          <div className="kpi-card">
+
             <div className="kpi-icon">
               <DollarSign />
             </div>
 
             <div>
-              <span>Valor del inventario</span>
+              <span>
+                Valor inventario
+              </span>
+
               <strong>
-                L {valorInventario.toLocaleString()}
+                L{' '}
+                {valorInventario.toLocaleString()}
               </strong>
             </div>
+
+          </div>
+
+          <div className="kpi-card">
+
+            <div className="kpi-icon">
+              <TrendingUp />
+            </div>
+
+            <div>
+              <span>
+                Valor venta
+              </span>
+
+              <strong>
+                L{' '}
+                {valorVenta.toLocaleString()}
+              </strong>
+            </div>
+
           </div>
 
           <div className="kpi-card warning">
+
             <div className="kpi-icon">
               <AlertTriangle />
             </div>
 
             <div>
-              <span>Stock bajo</span>
-              <strong>{productosBajos.length}</strong>
+              <span>
+                Stock bajo
+              </span>
+
+              <strong>
+                {stockBajo.length}
+              </strong>
             </div>
+
           </div>
+
         </div>
 
+        {/* =================================
+            ALERTA
+        ================================= */}
+
+        {stockBajo.length > 0 && (
+
+          <div className="stock-alert">
+
+            <AlertTriangle size={22} />
+
+            <div>
+
+              <strong>
+                Atención: stock bajo
+              </strong>
+
+              <p>
+                Hay {stockBajo.length}{' '}
+                producto(s) por debajo
+                del stock mínimo.
+              </p>
+
+            </div>
+
+          </div>
+
+        )}
+
+        {/* =================================
+            TABLA
+        ================================= */}
+
         <section className="panel">
+
           <div className="panel-header">
-            <h3>Inventario actual</h3>
+
+            <div>
+              <h3>
+                Inventario actual
+              </h3>
+
+              <p>
+                Productos registrados
+              </p>
+            </div>
+
           </div>
 
           <div className="table-container">
+
             <table>
+
               <thead>
+
                 <tr>
                   <th>ID</th>
                   <th>Producto</th>
                   <th>Categoría</th>
                   <th>Stock</th>
                   <th>Mínimo</th>
-                  <th>Precio</th>
+                  <th>Proveedor</th>
+                  <th>Compra</th>
+                  <th>Venta</th>
                   <th>Estado</th>
                 </tr>
+
               </thead>
 
               <tbody>
-                {productos.map((producto) => {
-                  const stockBajo =
-                    producto.stock <= producto.minimo
 
-                  return (
-                    <tr
-                      key={producto.id}
-                      className={stockBajo ? 'stock-bajo' : ''}
-                    >
-                      <td>{producto.id}</td>
-                      <td>{producto.producto}</td>
-                      <td>{producto.categoria}</td>
-                      <td>{producto.stock}</td>
-                      <td>{producto.minimo}</td>
-                      <td>
-                        L {producto.precio.toLocaleString()}
-                      </td>
-                      <td>
-                        {stockBajo ? (
-                          <span className="badge danger">
-                            ⚠ Stock bajo
-                          </span>
-                        ) : (
-                          <span className="badge success">
-                            Disponible
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                  )
-                })}
+                {productos.map(
+                  (producto) => {
+
+                    const bajo =
+                      producto.stock <=
+                      producto.minimo
+
+                    return (
+
+                      <tr
+                        key={
+                          producto.id
+                        }
+                      >
+
+                        <td>
+                          #{producto.id}
+                        </td>
+
+                        <td>
+                          <strong>
+                            {
+                              producto.producto
+                            }
+                          </strong>
+                        </td>
+
+                        <td>
+                          {
+                            producto.categoria
+                          }
+                        </td>
+
+                        <td>
+                          {
+                            producto.stock
+                          }
+                        </td>
+
+                        <td>
+                          {
+                            producto.minimo
+                          }
+                        </td>
+
+                        <td>
+                          {
+                            producto.proveedor
+                          }
+                        </td>
+
+                        <td>
+                          L{' '}
+                          {
+                            producto
+                              .precioCompra
+                              .toLocaleString()
+                          }
+                        </td>
+
+                        <td>
+                          L{' '}
+                          {
+                            producto
+                              .precioVenta
+                              .toLocaleString()
+                          }
+                        </td>
+
+                        <td>
+
+                          {bajo ? (
+
+                            <span className="badge danger">
+                              ⚠ Stock bajo
+                            </span>
+
+                          ) : (
+
+                            <span className="badge success">
+                              ✓ Disponible
+                            </span>
+
+                          )}
+
+                        </td>
+
+                      </tr>
+
+                    )
+                  }
+                )}
+
               </tbody>
+
             </table>
+
           </div>
+
         </section>
+
       </main>
+
     </div>
   )
 }
 
+/* =========================================
+   APP PRINCIPAL
+========================================= */
+
 function App() {
-  const [usuario, setUsuario] = useState(null)
+
+  const [usuario, setUsuario] =
+    useState(null)
 
   const cerrarSesion = () => {
     setUsuario(null)
   }
 
   if (!usuario) {
-    return <Login onLogin={setUsuario} />
+
+    return (
+      <Login
+        onLogin={setUsuario}
+      />
+    )
   }
 
   return (
@@ -381,6 +764,12 @@ function App() {
   )
 }
 
-createRoot(document.getElementById('root')).render(
+/* =========================================
+   INICIAR APLICACIÓN
+========================================= */
+
+createRoot(
+  document.getElementById('root')
+).render(
   <App />
 )
